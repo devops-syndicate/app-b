@@ -1,0 +1,28 @@
+apiVersion: core.oam.dev/v1beta1
+kind: Application
+metadata:
+  name: app-b
+spec:
+  components:
+  - name: app-b
+    type: webservice
+    properties:
+      image: sselzer/app-b
+      port: 8080
+      
+    traits:
+    - type: annotations
+      properties:
+        "prometheus.io/scrape": "true"
+        "prometheus.io/path": /metrics
+        "prometheus.io/port": "8080"
+    - type: gateway
+      properties:
+        domain: app-b.127.0.0.1.nip.io
+        http:
+          "/": 8080
+    - type: cpuscaler
+      properties:
+        min: 2
+        max: 5
+        cpuPercent: 80
