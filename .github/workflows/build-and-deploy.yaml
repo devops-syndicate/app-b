@@ -5,7 +5,7 @@ on:
       - main
 env:
   APP_NAME: app-b
-  IMAGE_NAME: sselzer/${{ env.APP_NAME }}
+  IMAGE_NAME: sselzer/app-b
 jobs:
   publish_image:
     name: Build and push image
