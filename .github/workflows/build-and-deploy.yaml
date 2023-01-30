@@ -13,18 +13,12 @@ jobs:
           go-version: 1.19
       - name: Check out app repository
         uses: actions/checkout@v3
-      - name: Extract tags and labels for Docker push
-        id: meta
-        uses: docker/metadata-action@98669ae865ea3cffbcbaa878cf57c20bbf1c6c38
-        with:
-          images: sselzer/app-b
-          tags: |
-            type=sha,enable=true,priority=100,prefix=,suffix=,format=short
       - name: Setup ko
         uses: ko-build/setup-ko@v0.6
         env:
           KO_DOCKER_REPO: docker.io/sselzer
       - name: Build Docker image and push
         run: |
+          tag=$(echo ${{ github.ref }} | cut -c -7) 
           ko login docker.io -u ${{ secrets.DOCKER_USERNAME }} -p  ${{ secrets.DOCKER_PASSWORD }}
-          ko build -B --platform=linux/amd64,linux/arm64 -t ${{ steps.meta.outputs.tags }}
+          ko build -B --platform=linux/amd64,linux/arm64 -t ${tag}
