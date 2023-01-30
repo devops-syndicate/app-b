@@ -1,0 +1,17 @@
+apiVersion: backstage.io/v1alpha1
+kind: Component
+metadata:
+  name: "app-b"
+  annotations:
+    github.com/project-slug: "devops-syndicate/app-b"
+    argocd/app-name: app-b
+    backstage.io/techdocs-ref: dir:.
+  links:
+    - title: Link to ArgoCD
+      url: http://argo-cd.127.0.0.1.nip.io/applications/app-b
+spec:
+  type: service
+  owner: team-a
+  lifecycle: production
+  providesApis:
+    - app-b-api
