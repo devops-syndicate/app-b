@@ -19,6 +19,6 @@ jobs:
           KO_DOCKER_REPO: docker.io/sselzer
       - name: Build Docker image and push
         run: |
-          tag=$(echo ${{ github.ref }} | cut -c -7) 
+          tag=$(echo  ${{ github.sha }} | cut -c -7) 
           ko login docker.io -u ${{ secrets.DOCKER_USERNAME }} -p  ${{ secrets.DOCKER_PASSWORD }}
           ko build -B --platform=linux/amd64,linux/arm64 -t ${tag}
