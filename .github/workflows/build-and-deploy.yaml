@@ -2,7 +2,7 @@ name: Build and Deploy application
 on:
   push:
     branches:
-      - main
+    - main
 env:
   APP_NAME: app-b
   IMAGE_NAME: sselzer/app-b
@@ -13,58 +13,58 @@ jobs:
     outputs:
       tag: ${{ steps.vars.outputs.tag }}
     steps:
-      - uses: actions/setup-go@v3
-        with:
-          go-version: 1.19
-      - name: Check out app repository
-        uses: actions/checkout@v3
-      - name: Define variables for the Docker image
-        id: vars
-        shell: bash
-        run: |
-          echo "tag=$(git rev-parse --short HEAD)" >> $GITHUB_OUTPUT
-      - name: Setup ko
-        uses: ko-build/setup-ko@v0.6
-        env:
-          KO_DOCKER_REPO: docker.io/${{ env.IMAGE_NAME }}
-      - name: Build Docker image and push
-        run: |
-          ko login docker.io -u ${{ secrets.DOCKER_USERNAME }} -p  ${{ secrets.DOCKER_PASSWORD }}
-          ko build --bare --platform=linux/amd64,linux/arm64 -t ${{ steps.vars.outputs.tag }}
+    - uses: actions/setup-go@v3
+      with:
+        go-version: 1.19
+    - name: Check out app repository
+      uses: actions/checkout@v3
+    - name: Define image tag
+      id: vars
+      shell: bash
+      run: |
+        echo "tag=$(git rev-parse --short HEAD)" >> $GITHUB_OUTPUT
+    - name: Setup ko
+      uses: ko-build/setup-ko@v0.6
+      env:
+        KO_DOCKER_REPO: docker.io/${{ env.IMAGE_NAME }}
+    - name: Build and push Docker image
+      run: |
+        ko login docker.io -u ${{ secrets.DOCKER_USERNAME }} -p  ${{ secrets.DOCKER_PASSWORD }}
+        ko build --bare --platform=linux/amd64,linux/arm64 -t ${{ steps.vars.outputs.tag }}
   update_argo_apps:
     name: Update argocd apps with new version
     runs-on: ubuntu-latest
     needs:
-      - publish_image
+    - publish_image
     steps:
-      - name: Check out app repository
-        uses: actions/checkout@v3
-        with:
-          path: app
-      - name: Prepare kustomize
-        uses: imranismail/setup-kustomize@v1
-      - name: Update image version
-        run: |
-          cd app/kustomize
-          kustomize edit set image ${{ env.IMAGE_NAME }}=${{ env.IMAGE_NAME}}:${{ needs.publish_image.outputs.tag }}
-          kustomize build
-      - name: Check out ArgoCD apps repository
-        uses: actions/checkout@v3
-        with:
-          token: ${{ secrets.DEPLOY_TOKEN }}
-          path: argocd-apps
-          repository: devops-syndicate/argocd-apps
-          ref: main
-      - name: Update image version in ArgoCD apps repository
-        run: |
-          cd argocd-apps
-          [ ! -d apps/${{ env.APP_NAME }} ] && mkdir -p apps/${{ env.APP_NAME }}
-          kustomize build ../app/kustomize > apps/${{ env.APP_NAME }}/app.yaml
-      - name: Commit and push change new version to ArgoCD apps repository
-        run: |
-          cd argocd-apps
-          git config user.name "${{ env.APP_NAME }} github-actions"
-          git config user.email ${{ env.APP_NAME }}@devops-syndicate.github.com
-          git add .
-          git commit -m "Update ${{ env.APP_NAME }} application to version [${{ needs.publish_image.outputs.tag }}]"
-          git push
+    - name: Check out app repository
+      uses: actions/checkout@v3
+      with:
+        path: app
+    - name: Prepare kustomize
+      uses: imranismail/setup-kustomize@v1
+    - name: Update image version
+      run: |
+        cd app/kustomize
+        kustomize edit set image ${{ env.IMAGE_NAME }}=${{ env.IMAGE_NAME}}:${{ needs.publish_image.outputs.tag }}
+        kustomize build
+    - name: Check out ArgoCD apps repository
+      uses: actions/checkout@v3
+      with:
+        token: ${{ secrets.DEPLOY_TOKEN }}
+        path: argocd-apps
+        repository: devops-syndicate/argocd-apps
+        ref: main
+    - name: Update image version in ArgoCD apps repository
+      run: |
+        cd argocd-apps
+        [ ! -d apps/${{ env.APP_NAME }} ] && mkdir -p apps/${{ env.APP_NAME }}
+        kustomize build ../app/kustomize > apps/${{ env.APP_NAME }}/app.yaml
+    - name: Commit and push change new version to ArgoCD apps repository
+      run: |
+        cd argocd-apps
+        git config user.name "${{ env.APP_NAME }} github-actions"
+        git config user.email ${{ env.APP_NAME }}@devops-syndicate.github.com
+        git add .
+        git commit -m "Update ${{ env.APP_NAME }} application to version [${{ needs.publish_image.outputs.tag }}]"
+        git push
