@@ -19,7 +19,7 @@ func initProfiling() {
 	pyroscope.Start(pyroscope.Config{
 		ApplicationName: APP_NAME,
 		ServerAddress:   pyroscope_endpoint,
-		Logger:          pyroscope.StandardLogger,
+		Logger:          logrus.StandardLogger(),
 		ProfileTypes: []pyroscope.ProfileType{
 			// these profile types are enabled by default:
 			pyroscope.ProfileCPU,
