@@ -17,6 +17,7 @@ func initLogger() {
 			logrus.FieldKeyMsg:  MESSAGE_KEY,
 		}})
 	logrus.AddHook(&EnrichWithTracingHook{})
+	logrus.SetLevel(logrus.InfoLevel)
 }
 
 type EnrichWithTracingHook struct {
