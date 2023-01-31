@@ -5,6 +5,7 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/sirupsen/logrus"
+	ginprometheus "github.com/zsais/go-gin-prometheus"
 	"go.opentelemetry.io/contrib/instrumentation/github.com/gin-gonic/gin/otelgin"
 )
 
@@ -18,6 +19,9 @@ func main() {
 	gin.SetMode(gin.ReleaseMode)
 
 	router := gin.New()
+
+	p := ginprometheus.NewPrometheus("http")
+	p.Use(router)
 
 	router.Use(otelgin.Middleware(APP_NAME))
 
