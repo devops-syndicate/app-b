@@ -14,13 +14,13 @@ import (
 	semconv "go.opentelemetry.io/otel/semconv/v1.4.0"
 )
 
-func initTracing() {
+func initTracing() *sdktrace.TracerProvider {
 
 	var jaeger_endpoint = os.Getenv("OTEL_EXPORTER_JAEGER_HTTP_ENDPOINT")
 
 	if jaeger_endpoint == "" {
 		logrus.Info("OTEL_EXPORTER_JAEGER_HTTP_ENDPOINT not set. Skip tracing setup")
-		return
+		return nil
 	}
 	tp, err := tracer(jaeger_endpoint)
 	if err != nil {
@@ -29,6 +29,13 @@ func initTracing() {
 
 	otel.SetTracerProvider(tp)
 
+	return tp
+}
+
+func shutdownTracing(tp *sdktrace.TracerProvider) {
+	if tp == nil {
+		return
+	}
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 

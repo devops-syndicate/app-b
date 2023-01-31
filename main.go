@@ -13,8 +13,9 @@ const APP_NAME = "app-b"
 
 func main() {
 	initLogger()
-	initTracing()
 	initProfiling()
+	tp := initTracing()
+	defer shutdownTracing(tp)
 
 	gin.SetMode(gin.ReleaseMode)
 
