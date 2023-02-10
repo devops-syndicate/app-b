@@ -42,6 +42,7 @@ require (
 	github.com/pyroscope-io/client v0.6.0
 	github.com/ugorji/go/codec v1.2.7 // indirect
 	github.com/zsais/go-gin-prometheus v0.1.0
+	go.opentelemetry.io/contrib/instrumentation/net/http/httptrace/otelhttptrace v0.39.0
 	go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp v0.39.0
 	go.opentelemetry.io/otel/trace v1.13.0
 	golang.org/x/crypto v0.0.0-20211215153901-e495a2d5b3d3 // indirect
