@@ -3,12 +3,14 @@ package main
 import (
 	"math/rand"
 	"net/http"
+	"strconv"
 	"time"
 
 	"github.com/gin-gonic/gin"
 	"github.com/sirupsen/logrus"
 	ginprometheus "github.com/zsais/go-gin-prometheus"
 	"go.opentelemetry.io/contrib/instrumentation/github.com/gin-gonic/gin/otelgin"
+	"go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp"
 )
 
 const APP_NAME = "app-b"
@@ -38,14 +40,17 @@ func main() {
 }
 
 func HelloHandler(c *gin.Context) {
-	logrus.WithContext(c.Request.Context()).Info("Call hello endpoint")
+	logrus.WithContext(c.Request.Context()).Info("Hello endpoint called")
 	c.String(http.StatusOK, "Hello '%s'", APP_NAME)
 }
 
 func RandomHandler(c *gin.Context) {
+	logrus.WithContext(c.Request.Context()).Info("Random endpoint called")
 	rand.Seed(time.Now().UnixNano())
 	n := rand.Intn(10)
-	logrus.WithContext(c.Request.Context()).Infof("Call random endpoint and wait for %d seconds", n)
-	time.Sleep(time.Duration(n) * time.Second)
+	logrus.WithContext(c.Request.Context()).Info("Call httpbin with %d seconds delay", n)
+	req, _ := http.NewRequestWithContext(c.Request.Context(), "GET", "http://httpbin.org/delay/"+strconv.Itoa(n), nil)
+	client := http.Client{Transport: otelhttp.NewTransport(http.DefaultTransport)}
+	client.Do(req)
 	c.String(http.StatusOK, "From random")
 }
