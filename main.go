@@ -63,5 +63,6 @@ func callHttpbin(c context.Context, tracer trace.Tracer) {
 	ctx, span := tracer.Start(c, "call httpbin")
 	defer span.End()
 	ctx = httptrace.WithClientTrace(ctx, otelhttptrace.NewClientTrace(ctx))
-	otelhttp.Get(ctx, "http://httpbin.org/delay/"+strconv.Itoa(n))
+	resp, _ := otelhttp.Get(ctx, "http://httpbin.org/delay/"+strconv.Itoa(n))
+	defer resp.Body.Close()
 }
