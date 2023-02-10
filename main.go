@@ -14,6 +14,8 @@ import (
 	"go.opentelemetry.io/contrib/instrumentation/github.com/gin-gonic/gin/otelgin"
 	"go.opentelemetry.io/contrib/instrumentation/net/http/httptrace/otelhttptrace"
 	"go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp"
+	semconv "go.opentelemetry.io/otel/semconv/v1.17.0"
+	"go.opentelemetry.io/otel/trace"
 )
 
 const APP_NAME = "app-b"
@@ -34,7 +36,7 @@ func main() {
 	router.Use(otelgin.Middleware(APP_NAME))
 
 	router.GET("/", HelloHandler)
-	router.GET("/random", RandomHandler)
+	router.GET("/random", randomHandler(tp.Tracer("")))
 
 	logrus.Info("Start listening on port 8080")
 
@@ -47,17 +49,21 @@ func HelloHandler(c *gin.Context) {
 	c.String(http.StatusOK, "Hello '%s'", APP_NAME)
 }
 
-func RandomHandler(c *gin.Context) {
-	logrus.WithContext(c.Request.Context()).Info("Random endpoint called")
-	callHttpbin(c.Request.Context())
-	c.String(http.StatusOK, "From random")
+func randomHandler(tracer trace.Tracer) gin.HandlerFunc {
+	return func(c *gin.Context) {
+		logrus.WithContext(c.Request.Context()).Info("Random endpoint called")
+		callHttpbin(c.Request.Context(), tracer)
+		c.String(http.StatusOK, "From random")
+	}
 }
 
-func callHttpbin(c context.Context) {
+func callHttpbin(c context.Context, tracer trace.Tracer) {
 	rand.Seed(time.Now().UnixNano())
 	n := rand.Intn(10)
 	logrus.WithContext(c).Infof("Call httpbin with %d seconds delay", n)
-	ctx := httptrace.WithClientTrace(c, otelhttptrace.NewClientTrace(c))
+	ctx, span := tracer.Start(c, "call httpbin", trace.WithAttributes(semconv.PeerService("ExampleService")))
+	defer span.End()
+	ctx = httptrace.WithClientTrace(ctx, otelhttptrace.NewClientTrace(ctx))
 	req, _ := http.NewRequestWithContext(ctx, "GET", "http://httpbin.org/delay/"+strconv.Itoa(n), nil)
 	client := http.Client{Transport: otelhttp.NewTransport(http.DefaultTransport)}
 	client.Do(req)
