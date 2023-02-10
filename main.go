@@ -14,7 +14,6 @@ import (
 	"go.opentelemetry.io/contrib/instrumentation/github.com/gin-gonic/gin/otelgin"
 	"go.opentelemetry.io/contrib/instrumentation/net/http/httptrace/otelhttptrace"
 	"go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp"
-	semconv "go.opentelemetry.io/otel/semconv/v1.17.0"
 	"go.opentelemetry.io/otel/trace"
 )
 
@@ -61,10 +60,8 @@ func callHttpbin(c context.Context, tracer trace.Tracer) {
 	rand.Seed(time.Now().UnixNano())
 	n := rand.Intn(10)
 	logrus.WithContext(c).Infof("Call httpbin with %d seconds delay", n)
-	ctx, span := tracer.Start(c, "call httpbin", trace.WithAttributes(semconv.PeerService("ExampleService")))
+	ctx, span := tracer.Start(c, "call httpbin")
 	defer span.End()
 	ctx = httptrace.WithClientTrace(ctx, otelhttptrace.NewClientTrace(ctx))
-	req, _ := http.NewRequestWithContext(ctx, "GET", "http://httpbin.org/delay/"+strconv.Itoa(n), nil)
-	client := http.Client{Transport: otelhttp.NewTransport(http.DefaultTransport)}
-	client.Do(req)
+	otelhttp.Get(ctx, "http://httpbin.org/delay/"+strconv.Itoa(n))
 }
