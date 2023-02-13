@@ -37,10 +37,11 @@ func main() {
 		}),
 	})
 
+	router.GET("/metrics", gin.WrapH(promhttp.Handler()))
+
 	router.Use(otelgin.Middleware(APP_NAME))
 	router.Use(ginmiddleware.Handler("", mdlw))
 
-	router.GET("/metrics", gin.WrapH(promhttp.Handler()))
 	router.GET("/", HelloHandler)
 	router.GET("/random", RandomHandler)
 
