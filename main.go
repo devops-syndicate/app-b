@@ -9,12 +9,14 @@ import (
 	"time"
 
 	"github.com/gin-gonic/gin"
+	"github.com/prometheus/client_golang/prometheus/promhttp"
 	"github.com/sirupsen/logrus"
-	ginprometheus "github.com/zsais/go-gin-prometheus"
+	metrics "github.com/slok/go-http-metrics/metrics/prometheus"
+	"github.com/slok/go-http-metrics/middleware"
+	ginmiddleware "github.com/slok/go-http-metrics/middleware/gin"
 	"go.opentelemetry.io/contrib/instrumentation/github.com/gin-gonic/gin/otelgin"
 	"go.opentelemetry.io/contrib/instrumentation/net/http/httptrace/otelhttptrace"
 	"go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp"
-	"go.opentelemetry.io/otel/trace"
 )
 
 const APP_NAME = "app-b"
@@ -29,13 +31,18 @@ func main() {
 
 	router := gin.New()
 
-	p := ginprometheus.NewPrometheus("http")
-	p.Use(router)
+	mdlw := middleware.New(middleware.Config{
+		Recorder: metrics.NewRecorder(metrics.Config{
+			HandlerIDLabel: "route",
+		}),
+	})
 
 	router.Use(otelgin.Middleware(APP_NAME))
+	router.Use(ginmiddleware.Handler("", mdlw))
 
+	router.GET("/metrics", gin.WrapH(promhttp.Handler()))
 	router.GET("/", HelloHandler)
-	router.GET("/random", randomHandler(tp.Tracer("")))
+	router.GET("/random", RandomHandler)
 
 	logrus.Info("Start listening on port 8080")
 
@@ -48,21 +55,17 @@ func HelloHandler(c *gin.Context) {
 	c.String(http.StatusOK, "Hello '%s'", APP_NAME)
 }
 
-func randomHandler(tracer trace.Tracer) gin.HandlerFunc {
-	return func(c *gin.Context) {
-		logrus.WithContext(c.Request.Context()).Info("Random endpoint called")
-		callHttpbin(c.Request.Context(), tracer)
-		c.String(http.StatusOK, "From random")
-	}
+func RandomHandler(c *gin.Context) {
+	logrus.WithContext(c.Request.Context()).Info("Random endpoint called")
+	callHttpbin(c.Request.Context())
+	c.String(http.StatusOK, "From random")
 }
 
-func callHttpbin(c context.Context, tracer trace.Tracer) {
+func callHttpbin(c context.Context) {
 	rand.Seed(time.Now().UnixNano())
 	n := rand.Intn(10)
 	logrus.WithContext(c).Infof("Call httpbin with %d seconds delay", n)
-	ctx, span := tracer.Start(c, "call httpbin")
-	defer span.End()
-	ctx = httptrace.WithClientTrace(ctx, otelhttptrace.NewClientTrace(ctx))
+	ctx := httptrace.WithClientTrace(c, otelhttptrace.NewClientTrace(c))
 	resp, _ := otelhttp.Get(ctx, "http://httpbin.httpbin/delay/"+strconv.Itoa(n))
 	defer resp.Body.Close()
 }
