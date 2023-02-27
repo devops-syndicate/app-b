@@ -33,8 +33,6 @@ spec:
             "prometheus.io/port": "8080"
         - type: gateway
           properties:
-            class: traefik
-            classInSpec: true
             domain: app-b.127.0.0.1.nip.io
             http:
               "/": 8080
