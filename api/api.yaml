@@ -18,3 +18,6 @@ spec:
       /:
         get:
           summary: Returns hello
+      /random:
+        get:
+          summary: Calls the httpbin service with a random delay
