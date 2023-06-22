@@ -2,12 +2,14 @@ package main
 
 import (
 	"context"
+	"fmt"
 	"os"
 	"time"
 
 	"github.com/sirupsen/logrus"
 	"go.opentelemetry.io/otel"
-	"go.opentelemetry.io/otel/exporters/jaeger"
+	"go.opentelemetry.io/otel/exporters/otlp/otlptrace"
+	"go.opentelemetry.io/otel/exporters/otlp/otlptrace/otlptracehttp"
 	"go.opentelemetry.io/otel/propagation"
 	"go.opentelemetry.io/otel/sdk/resource"
 	sdktrace "go.opentelemetry.io/otel/sdk/trace"
@@ -15,14 +17,12 @@ import (
 )
 
 func initTracing() *sdktrace.TracerProvider {
-
-	var jaeger_endpoint = os.Getenv("OTEL_EXPORTER_JAEGER_HTTP_ENDPOINT")
-
-	if jaeger_endpoint == "" {
-		logrus.Info("OTEL_EXPORTER_JAEGER_HTTP_ENDPOINT not set. Skip tracing setup")
+	if os.Getenv("OTEL_EXPORTER_OTLP_TRACES_ENDPOINT") == "" {
+		logrus.Info("OTEL_EXPORTER_OTLP_TRACES_ENDPOINT not set. Skip tracing setup")
 		return nil
 	}
-	tp, err := tracer(jaeger_endpoint)
+
+	tp, err := tracer()
 	if err != nil {
 		logrus.Fatal(err)
 	}
@@ -50,11 +50,14 @@ func shutdownTracing(tp *sdktrace.TracerProvider) {
 	}(ctx)
 }
 
-func tracer(url string) (*sdktrace.TracerProvider, error) {
-	exporter, err := jaeger.New(jaeger.WithCollectorEndpoint(jaeger.WithEndpoint(url)))
+func tracer() (*sdktrace.TracerProvider, error) {
+
+	client := otlptracehttp.NewClient()
+	exporter, err := otlptrace.New(context.Background(), client)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("creating OTLP trace exporter: %w", err)
 	}
+
 	tp := sdktrace.NewTracerProvider(
 		sdktrace.WithBatcher(exporter),
 		sdktrace.WithResource(resource.NewWithAttributes(

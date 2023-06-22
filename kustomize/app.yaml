@@ -13,11 +13,11 @@ spec:
               configMapKeyRef:
                 name: app-b
                 key: OTEL_SERVICE_NAME
-          - name: OTEL_EXPORTER_JAEGER_HTTP_ENDPOINT
+          - name: OTEL_EXPORTER_OTLP_TRACES_ENDPOINT
             valueFrom:
               configMapKeyRef:
                 name: app-b
-                key: OTEL_EXPORTER_JAEGER_HTTP_ENDPOINT
+                key: OTEL_EXPORTER_OTLP_TRACES_ENDPOINT
           - name: PYROSCOPE_URL
             valueFrom:
               configMapKeyRef:
