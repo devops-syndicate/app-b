@@ -5,6 +5,9 @@ metadata:
   annotations:
     github.com/project-slug: "devops-syndicate/app-b"
     argocd/app-name: app-b
+        backstage.io/kubernetes-namespace: app-b
+    backstage.io/kubernetes-id: app-b
+    backstage.io/kubernetes-label-selector: 'app.oam.dev/name=app-b'
     backstage.io/techdocs-ref: dir:.
   links:
     - title: Link to ArgoCD
