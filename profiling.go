@@ -20,5 +20,17 @@ func initProfiling() {
 		ApplicationName: APP_NAME,
 		ServerAddress:   pyroscope_endpoint,
 		Logger:          logrus.StandardLogger(),
+		ProfileTypes: []pyroscope.ProfileType{
+			pyroscope.ProfileCPU,
+			pyroscope.ProfileInuseObjects,
+			pyroscope.ProfileAllocObjects,
+			pyroscope.ProfileInuseSpace,
+			pyroscope.ProfileAllocSpace,
+			pyroscope.ProfileGoroutines,
+			pyroscope.ProfileMutexCount,
+			pyroscope.ProfileMutexDuration,
+			pyroscope.ProfileBlockCount,
+			pyroscope.ProfileBlockDuration,
+		},
 	})
 }
