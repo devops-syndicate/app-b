@@ -7,6 +7,6 @@ resources:
 configMapGenerator:
   - name: app-b
     literals:
-      - "PYROSCOPE_URL=http://pyroscope.pyroscope:4040"
+      - "PYROSCOPE_URL=http://pyroscope.observability:4040"
       - "OTEL_SERVICE_NAME=app-b"
-      - "OTEL_EXPORTER_OTLP_TRACES_ENDPOINT=http://tempo.tempo:4318/v1/traces"
+      - "OTEL_EXPORTER_OTLP_TRACES_ENDPOINT=http://tempo.observability:4318/v1/traces"
