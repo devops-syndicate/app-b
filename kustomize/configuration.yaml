@@ -6,4 +6,3 @@ nameReference:
 images:
   - path: spec/components/properties/image
     kind: Application
-    apiVersion: core.oam.dev/v1beta1
