@@ -6,7 +6,6 @@ import (
 	"net/http"
 	"net/http/httptrace"
 	"strconv"
-	"time"
 
 	"github.com/gin-gonic/gin"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
@@ -63,7 +62,6 @@ func RandomHandler(c *gin.Context) {
 }
 
 func callHttpbin(c context.Context) {
-	rand.Seed(time.Now().UnixNano())
 	n := rand.Intn(10)
 	logrus.WithContext(c).Infof("Call httpbin with %d seconds delay", n)
 	ctx := httptrace.WithClientTrace(c, otelhttptrace.NewClientTrace(c))
