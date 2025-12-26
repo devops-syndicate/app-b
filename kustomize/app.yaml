@@ -26,6 +26,9 @@ spec:
         image: sselzer/app-b
         port: 8080
       traits:
+        - type: labels
+          properties:
+            "app.kubernetes.io/name": "app-b"
         - type: annotations
           properties:
             "prometheus.io/scrape": "true"
